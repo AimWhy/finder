@@ -2,16 +2,17 @@
 
 ![finder](https://medv.io/assets/finder.png)
 
-[![Test](https://github.com/antonmedv/finder/actions/workflows/test.yml/badge.svg)](https://github.com/antonmedv/finder/actions/workflows/test.yml)
-
 **The CSS Selector Generator**
+
+[![Test](https://github.com/antonmedv/finder/actions/workflows/test.yml/badge.svg)](https://github.com/antonmedv/finder/actions/workflows/test.yml)
+[![JSR](https://jsr.io/badges/@medv/finder)](https://jsr.io/@medv/finder)
 
 ## Features
 
-* Generates the **shortest** selector
-* **Unique** selectors per page
-* Stable and **robust** selectors
-* **2kB** minified + gzipped
+* Generates **shortest** CSS selectors
+* **Unique** CSS selectors per page
+* Stable and **robust** CSS selectors
+* Size: **1.5kb** (minified & gzipped)
 
 ## Install
 
@@ -34,52 +35,69 @@ document.addEventListener('click', (event) => {
 An example of a generated selector:
 
 ```css
-.blog > article:nth-child(3) .add-comment
+.blog > article:nth-of-type(3) .add-comment
 ```
 
 ## Configuration
 
 ```js
 const selector = finder(event.target, {
-  root: document.body,          // Root of search, defaults to document.body.
-  idName: (name) => true,       // Check if this ID can be used.
-  className: (name) => true,    // Check if this class name can be used.
-  tagName: (name) => true,      // Check if tag name can be used.
-  attr: (name, value) => false, // Check if attr name can be used.
-  seedMinLength: 1,           
-  optimizedMinLength: 2,
-  threshold: 1000,
-  maxNumberOfTries: 10_000,
-  timeoutMs: undefined,
+  root: document.body,
+  timeoutMs: 1000,
 });
 ```
 
-### seedMinLength
+### root
 
-Minimum length of levels in fining selector. Starts from `1`. 
-For more robust selectors give this param value around 4-5 depending on depth of
-you DOM tree. If finder hits the `root`, this param is ignored.
-
-### optimizedMinLength
-
-Minimum length for optimising selector. Starts from `2`. 
-For example selector `body > div > div > p` can be optimised to `body p`.
-
-### threshold
-
-Max number of selectors to check before falling into `nth-child` usage. 
-Checking for uniqueness of selector is very costly operation, if you have DOM 
-tree depth of 5, with 5 classes on each level, that gives you more than 3k 
-selectors to check. Default `1000` is good enough in most cases.  
-
-### maxNumberOfTries
-
-Max number of tries for the optimization. This is a trade-off between
-optimization and efficiency. Default `10_000` is good enough in most cases.
+Defines the root of the search. Defaults to `document.body`.
 
 ### timeoutMs
 
-Optional timeout in milliseconds. `undefined` (no timeout) by default. If `timeoutMs: 500` is provided, an error will be thrown if selector generation takes more than 500ms.
+Timeout to search for a selector. Defaults to `1000ms`. After the timeout, finder fallbacks to `nth-child` selectors.
+
+### className
+
+Function that determines if a class name may be used in a selector. Defaults to a word-like class names.
+
+You can extend the default behaviour wrapping the `className` function:
+
+```js
+import { finder, className } from '@medv/finder';
+
+finder(event.target, {
+  className: name => className(name) || name.startsWith('my-class-'),
+});
+```
+
+### tagName
+
+Function that determines if a tag name may be used in a selector. Defaults to `() => true`.
+
+### attr
+
+Function that determines if an attribute may be used in a selector. Defaults to a word-like attribute names and values.
+
+You can extend the default behaviour wrapping the `attr` function:
+
+```js
+import { finder, attr } from '@medv/finder';
+
+finder(event.target, {
+  attr: (name, value) => attr(name, value) || name.startsWith('data-my-attr-'),
+});
+```
+
+### idName
+
+Function that determines if an id name may be used in a selector. Defaults to a word-like id names.
+
+### seedMinLength
+
+Minimum length of levels in fining selector. Defaults to `3`.
+
+### optimizedMinLength
+
+Minimum length for optimising selector. Defaults to `2`.
 
 ## License
 
